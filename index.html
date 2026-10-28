@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Papa Time Leaderboard</title>
+<meta name="description" content="Kto pierwszy napisze papa o 21:37? Oficjalny ranking.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🙏</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0a12;
+    --panel: #15131f;
+    --panel-2: #1d1a2b;
+    --line: #2c2840;
+    --text: #f4f1ff;
+    --muted: #9c95b8;
+    --gold: #f7c948;
+    --gold-2: #ffe8a3;
+    --gold-3: #b8860b;
+    --silver: #cfd6e4;
+    --bronze: #d9874a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 50% -200px, #3a2a0a 0%, transparent 70%),
+      radial-gradient(800px 500px at 100% 30%, #1f1240 0%, transparent 70%),
+      var(--bg);
+    color: var(--text);
+    font-family: Inter, system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 16px 80px; position: relative; }
+
+  /* ---------- Language switcher ---------- */
+  .langs {
+    position: absolute; top: 16px; right: 16px; z-index: 5;
+    display: flex; gap: 2px; padding: 4px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
+  }
+  .langs button {
+    font: 800 13px Inter, sans-serif; color: var(--muted); background: none; border: 0;
+    border-radius: 999px; padding: 7px 12px; cursor: pointer; letter-spacing: .05em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .langs button:hover { color: var(--text); }
+  .langs button[aria-pressed="true"] { background: var(--gold); color: #1a1405; }
+
+  /* ---------- Hero ---------- */
+  header { text-align: center; padding: 72px 0 24px; position: relative; }
+  .kicker { letter-spacing: .35em; text-transform: uppercase; color: var(--gold); font-weight: 800; font-size: 13px; }
+  h1 {
+    font-family: Anton, Impact, sans-serif;
+    font-size: clamp(64px, 16vw, 168px);
+    line-height: .9;
+    margin: 12px 0 8px;
+    letter-spacing: .02em;
+    background: linear-gradient(180deg, var(--gold-2) 0%, var(--gold) 45%, var(--gold-3) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 6px 30px rgba(247, 201, 72, .35));
+  }
+  h1 .t { display: block; font-size: .42em; letter-spacing: .3em; }
+  .sub { color: var(--muted); font-size: 16px; }
+
+  .clock {
+    margin: 28px auto 0; display: inline-flex; gap: 18px; align-items: center;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
+    padding: 10px 24px 10px 12px;
+  }
+  .clock .dot { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--panel-2); font-size: 22px; }
+  .clock .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .15em; text-align: left; }
+  .clock .time { font-family: Anton, Impact, sans-serif; font-size: 30px; letter-spacing: .05em; font-variant-numeric: tabular-nums; }
+  body.live .clock { border-color: var(--gold); box-shadow: 0 0 40px rgba(247, 201, 72, .5); animation: pulse 1s infinite; }
+  body.live .clock .time { color: var(--gold); }
+  @keyframes pulse { 50% { transform: scale(1.04); } }
+
+  /* ---------- Tabs ---------- */
+  .tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 40px 0 28px; }
+  .tab {
+    font: 800 15px Inter, sans-serif; color: var(--muted); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 999px; padding: 10px 20px; cursor: pointer;
+    transition: all .2s;
+  }
+  .tab:hover { color: var(--text); border-color: var(--muted); }
+  .tab[aria-selected="true"] { background: var(--gold); color: #1a1405; border-color: var(--gold); }
+
+  /* ---------- Podium ---------- */
+  .podium { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 12px; align-items: end; }
+  .step { text-align: center; }
+  .avatar {
+    width: 84px; height: 84px; margin: 0 auto 10px; border-radius: 50%;
+    display: grid; place-items: center; font-family: Anton, sans-serif; font-size: 38px; color: #120f1c;
+    position: relative;
+  }
+  .first .avatar { width: 112px; height: 112px; font-size: 52px; }
+  .crown { position: absolute; top: -34px; left: 50%; transform: translateX(-50%) rotate(-8deg); font-size: 38px; }
+  .name { font-weight: 800; font-size: 20px; }
+  .wins { color: var(--muted); font-size: 14px; margin-bottom: 10px; }
+  .block {
+    border-radius: 16px 16px 4px 4px; display: grid; place-items: center;
+    font-family: Anton, sans-serif; font-size: 44px; color: #1a1405;
+    box-shadow: inset 0 -10px 0 rgba(0,0,0,.18), 0 10px 40px rgba(0,0,0,.4);
+    transition: height .6s cubic-bezier(.2,.9,.3,1.2);
+  }
+  .first .block  { height: 190px; background: linear-gradient(180deg, var(--gold-2), var(--gold) 40%, var(--gold-3)); }
+  .second .block { height: 140px; background: linear-gradient(180deg, #fff, var(--silver) 50%, #8f99ad); }
+  .third .block  { height: 105px; background: linear-gradient(180deg, #ffc9a0, var(--bronze) 50%, #8c4f22); }
+
+  /* ---------- Bars ---------- */
+  .bars { margin-top: 28px; display: grid; gap: 10px; }
+  .row {
+    display: grid; grid-template-columns: 34px 110px 1fr 64px; gap: 12px; align-items: center;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px;
+  }
+  .rank { font-family: Anton, sans-serif; font-size: 22px; color: var(--muted); }
+  .row .who { font-weight: 800; font-size: 17px; }
+  .track { height: 14px; background: var(--panel-2); border-radius: 99px; overflow: hidden; }
+  .fill { height: 100%; width: 0; border-radius: 99px; transition: width 1s cubic-bezier(.2,.8,.2,1); }
+  .count { font-family: Anton, sans-serif; font-size: 26px; text-align: right; font-variant-numeric: tabular-nums; }
+  .pct { display: block; font: 600 11px Inter, sans-serif; color: var(--muted); }
+
+  /* ---------- Sections ---------- */
+  h2 {
+    font-family: Anton, sans-serif; font-weight: 400; font-size: 34px; letter-spacing: .03em;
+    margin: 64px 0 18px; display: flex; align-items: center; gap: 12px;
+  }
+  h2::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 20px; position: relative; overflow: hidden; }
+  .stat .emoji { font-size: 30px; }
+  .stat .title { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .15em; margin-top: 10px; }
+  .stat .big { font-family: Anton, sans-serif; font-size: 40px; line-height: 1.1; margin-top: 6px; }
+  .stat .who { font-weight: 800; }
+  .stat .note { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+  .chart { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+  .chart svg { width: 100%; height: auto; display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-top: 10px; font-weight: 600; font-size: 14px; }
+  .legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; background: var(--c); vertical-align: -1px; }
+
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; font-variant-numeric: tabular-nums; }
+  th, td { padding: 12px 14px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  td.top { color: var(--gold); font-weight: 800; }
+  td.worst { color: #ff6b6b; font-weight: 800; }
+  tr.section td {
+    background: var(--panel-2); color: var(--text); font-weight: 800; text-align: left;
+    text-transform: uppercase; letter-spacing: .12em; font-size: 12px; padding-top: 14px;
+  }
+  tr.section span { color: var(--muted); font-weight: 600; text-transform: none; letter-spacing: 0; }
+  .table-wrap { overflow-x: auto; border-radius: 18px; }
+
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 64px; }
+
+  .confetti { position: fixed; top: -20px; font-size: 26px; pointer-events: none; animation: fall linear forwards; z-index: 10; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
+
+  @media (max-width: 600px) {
+    .langs { left: 50%; right: auto; transform: translateX(-50%); }
+    .langs button { padding: 6px 10px; }
+    .avatar { width: 64px; height: 64px; font-size: 28px; }
+    .first .avatar { width: 84px; height: 84px; font-size: 38px; }
+    .crown { font-size: 28px; top: -26px; }
+    .name { font-size: 16px; }
+    .block { font-size: 32px; }
+    .first .block { height: 150px; } .second .block { height: 110px; } .third .block { height: 80px; }
+    .row { grid-template-columns: 26px 72px 1fr 52px; gap: 8px; padding: 10px 12px; }
+    .row .who { font-size: 15px; }
+    .count { font-size: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="langs" id="langs" aria-label="Language"></nav>
+
+  <header>
+    <div class="kicker" data-i18n="kicker"></div>
+    <h1>PAPA<span class="t">TIME</span></h1>
+    <div class="sub" data-i18n="sub"></div>
+    <div class="clock" aria-live="polite">
+      <div class="dot">🙏</div>
+      <div>
+        <div class="label" id="clock-label"></div>
+        <div class="time" id="clock">--:--:--</div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+
+  <section>
+    <div class="podium" id="podium"></div>
+    <div class="bars" id="bars"></div>
+  </section>
+
+  <h2 data-i18n="hallOfFame"></h2>
+  <div class="stats" id="stats"></div>
+
+  <h2 data-i18n="race"></h2>
+  <div class="chart">
+    <div id="race"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <h2 data-i18n="yearByYear"></h2>
+  <div class="table-wrap"><table id="table"></table></div>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+const D = {"updated":"2026-10-25","firstGame":"2023-08-28","daysPlayed":773,"players":["Tobias","Agata","Ula","Natalia"],"years":["2023","2024","2025","2026"],"wins":{"2023":{"Tobias":31,"Agata":23,"Ula":20},"2024":{"Tobias":64,"Ula":74,"Agata":55,"Natalia":35},"2025":{"Ula":80,"Agata":57,"Natalia":98,"Tobias":40},"2026":{"Natalia":65,"Agata":29,"Ula":69,"Tobias":33},"total":{"Tobias":168,"Agata":164,"Ula":243,"Natalia":198}},"early":{"2024":{"Tobias":20,"Agata":1,"Ula":1,"Natalia":2},"2025":{"Tobias":11,"Ula":1},"2026":{"Tobias":1,"Natalia":1},"total":{"Tobias":32,"Agata":1,"Ula":2,"Natalia":3}},"streak":{"Tobias":3,"Agata":3,"Ula":4,"Natalia":6},"bestStreak":{"name":"Natalia","len":6,"start":"2025-07-20","end":"2025-07-25"},"avgReaction":{"Tobias":12784,"Agata":10460,"Ula":8219,"Natalia":20270},"fastest":{"name":"Natalia","ms":132,"date":"2024-11-14"},"bestMonth":{"name":"Natalia","month":"2025-05","wins":14},"race":{"months":["2023-08","2023-09","2023-10","2023-11","2023-12","2024-01","2024-02","2024-03","2024-04","2024-05","2024-06","2024-07","2024-08","2024-09","2024-10","2024-11","2024-12","2025-01","2025-02","2025-03","2025-04","2025-05","2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09","2026-10"],"series":{"Tobias":[2,12,15,26,31,32,38,44,53,56,62,69,75,78,87,89,95,99,102,106,111,113,115,118,123,123,128,130,135,136,138,143,147,148,150,152,156,161,168],"Agata":[0,6,12,19,23,26,29,36,43,47,50,53,59,65,70,73,78,83,91,98,106,115,117,119,124,126,133,134,135,137,137,137,144,148,153,158,159,163,164],"Ula":[0,9,13,15,20,21,25,29,36,46,55,60,64,72,79,88,94,104,113,121,124,127,132,141,151,159,160,168,174,177,182,190,193,198,205,211,223,235,243],"Natalia":[0,0,0,0,0,0,0,0,0,0,0,0,0,10,18,29,35,42,49,56,61,75,84,95,99,107,115,124,133,143,148,153,156,164,168,180,187,192,198]}}};
+
+/* ---------- Översättningar ---------- */
+const LANGS = [["pl", "Polski", "PL"], ["sv", "Svenska", "SV"], ["en", "English", "EN"]];
+const LOCALE = { pl: "pl-PL", sv: "sv-SE", en: "en-GB" };
+const T = {
+  pl: {
+    title: "Papa Time – ranking",
+    description: "Kto pierwszy napisze papa o 21:37? Oficjalny ranking.",
+    kicker: "Papa team · oficjalny ranking",
+    sub: "Kto pierwszy napisze <b>papa</b> (albo 🙏) o <b>21:37</b>, wygrywa dzień.",
+    nextIn: "Następny papa time za",
+    now: "To teraz!",
+    total: "Łącznie",
+    wins: { one: "{n} wygrana", few: "{n} wygrane", many: "{n} wygranych", other: "{n} wygranej" },
+    days: { one: "{n} dzień", other: "{n} dni" },
+    hallOfFame: "Galeria sław",
+    race: "Wyścig",
+    yearByYear: "Rok po roku",
+    mostWins: "Najwięcej wygranych", mostWinsNote: "z {n} rozegranych dni",
+    streak: "Najdłuższa seria",
+    fastest: "Najszybszy palec", fastestNote: "po 21:37:00 · {date}",
+    bestAvg: "Najlepszy średni czas", bestAvgNote: "średnio po 21:37:00 przy wygranej",
+    bestMonth: "Najlepszy miesiąc",
+    earlyKing: "Król falstartów", earlyNote: "papa już o 21:36",
+    player: "Gracz", falseStarts: "Falstarty",
+    chartLabel: "Skumulowane wygrane w czasie",
+    footer: "Gramy od {first} · {n} dni ze zwycięzcą · aktualizacja {updated}",
+  },
+  sv: {
+    title: "Papa Time – topplista",
+    description: "Vem skriver papa först kl 21:37? Den officiella topplistan.",
+    kicker: "Papa team · officiell topplista",
+    sub: "Först att skriva <b>papa</b> (eller 🙏) kl <b>21:37</b> vinner dagen.",
+    nextIn: "Nästa papa time om",
+    now: "Det är nu!",
+    total: "Totalt",
+    wins: { one: "{n} vinst", other: "{n} vinster" },
+    days: { one: "{n} dag", other: "{n} dagar" },
+    hallOfFame: "Hall of fame",
+    race: "Kapplöpningen",
+    yearByYear: "År för år",
+    mostWins: "Flest vinster totalt", mostWinsNote: "av {n} spelade dagar",
+    streak: "Längsta vinstsvit",
+    fastest: "Snabbaste fingret", fastestNote: "efter 21:37:00 · {date}",
+    bestAvg: "Bäst snittid", bestAvgNote: "i snitt efter 21:37:00 vid vinst",
+    bestMonth: "Bästa månaden",
+    earlyKing: "Tjuvstartskungen", earlyNote: "papa redan kl 21:36",
+    player: "Spelare", falseStarts: "Tjuvstarter",
+    chartLabel: "Kumulativa vinster över tid",
+    footer: "Spelat sedan {first} · {n} dagar med en vinnare · uppdaterad {updated}",
+  },
+  en: {
+    title: "Papa Time – leaderboard",
+    description: "Who types papa first at 21:37? The official leaderboard.",
+    kicker: "Papa team · official leaderboard",
+    sub: "First to type <b>papa</b> (or 🙏) at <b>21:37</b> wins the day.",
+    nextIn: "Next papa time in",
+    now: "It's now!",
+    total: "Total",
+    wins: { one: "{n} win", other: "{n} wins" },
+    days: { one: "{n} day", other: "{n} days" },
+    hallOfFame: "Hall of fame",
+    race: "The race",
+    yearByYear: "Year by year",
+    mostWins: "Most wins overall", mostWinsNote: "out of {n} days played",
+    streak: "Longest win streak",
+    fastest: "Fastest finger", fastestNote: "after 21:37:00 · {date}",
+    bestAvg: "Best average time", bestAvgNote: "on average after 21:37:00 when winning",
+    bestMonth: "Best month",
+    earlyKing: "False start king", earlyNote: "papa already at 21:36",
+    player: "Player", falseStarts: "False starts",
+    chartLabel: "Cumulative wins over time",
+    footer: "Playing since {first} · {n} days with a winner · updated {updated}",
+  },
+};
+
+function storedLang() {
+  try { return localStorage.getItem("papa-lang"); } catch { return null; }
+}
+let lang = new URLSearchParams(location.search).get("lang") || storedLang() || "pl";
+if (!T[lang]) lang = "pl";
+
+const fill = (s, vars) => s.replace(/\{(\w+)\}/g, (_, k) => vars[k]);
+const t = (key, vars = {}) => fill(T[lang][key], vars);
+function plural(key, n) {
+  const forms = T[lang][key];
+  const cat = new Intl.PluralRules(LOCALE[lang]).select(n);
+  return fill(forms[cat] || forms.other, { n });
+}
+const fmtDate = d => new Intl.DateTimeFormat(LOCALE[lang], { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })
+  .format(new Date(d + "T00:00:00Z"));
+const fmtMonth = mo => new Intl.DateTimeFormat(LOCALE[lang], { month: "long", year: "numeric", timeZone: "UTC" })
+  .format(new Date(mo + "-01T00:00:00Z"));
+const fmtSec = ms => new Intl.NumberFormat(LOCALE[lang], { maximumFractionDigits: ms < 10000 ? 2 : 1, minimumFractionDigits: ms < 10000 ? 2 : 1 })
+  .format(ms / 1000) + " s";
+
+const COLORS = ["#f7c948", "#ff5d8f", "#4fd1c5", "#8b7bff", "#7bd389", "#ff9f43"];
+const ranked = Object.entries(D.wins.total).sort((a, b) => b[1] - a[1]).map(([n]) => n);
+for (const p of D.players) if (!ranked.includes(p)) ranked.push(p);
+const color = Object.fromEntries(ranked.map((p, i) => [p, COLORS[i % COLORS.length]]));
+
+const el = (tag, attrs = {}, html = "") => Object.assign(document.createElement(tag), attrs, { innerHTML: html });
+
+/* ---------- Språkknappar ---------- */
+const langs = document.getElementById("langs");
+for (const [code, name, label] of LANGS) {
+  const b = el("button", { type: "button", title: name, lang: code }, label);
+  b.dataset.lang = code;
+  b.onclick = () => setLang(code);
+  langs.append(b);
+}
+
+function setLang(code) {
+  lang = code;
+  try { localStorage.setItem("papa-lang", code); } catch {}
+  renderAll();
+}
+
+/* ---------- Flikar + topplista ---------- */
+const keys = ["total", ...D.years.slice().reverse()];
+const tabs = document.getElementById("tabs");
+let current = "total";
+for (const k of keys) {
+  const b = el("button", { className: "tab", role: "tab", type: "button" });
+  b.onclick = () => show(k);
+  b.dataset.key = k;
+  tabs.append(b);
+}
+
+function show(key, animate = true) {
+  current = key;
+  for (const b of tabs.children) b.setAttribute("aria-selected", b.dataset.key === key);
+  const w = D.wins[key];
+  const list = D.players.map(p => [p, w[p] || 0]).sort((a, b) => b[1] - a[1]);
+  const sum = list.reduce((s, [, v]) => s + v, 0);
+  const max = list[0][1] || 1;
+
+  const podium = document.getElementById("podium");
+  podium.innerHTML = "";
+  const places = [[1, "second", "🥈"], [0, "first", "👑"], [2, "third", "🥉"]];
+  for (const [i, cls, icon] of places) {
+    const [name, v] = list[i] || ["–", 0];
+    podium.append(el("div", { className: `step ${cls}` }, `
+      <div class="avatar" style="background:${color[name] || "#555"}">
+        <span class="crown">${icon}</span>${name[0]}
+      </div>
+      <div class="name">${name}</div>
+      <div class="wins">${plural("wins", v)}</div>
+      <div class="block">${i + 1}</div>`));
+  }
+
+  const bars = document.getElementById("bars");
+  bars.innerHTML = "";
+  list.forEach(([name, v], i) => {
+    const row = el("div", { className: "row" }, `
+      <div class="rank">${i + 1}</div>
+      <div class="who">${name}</div>
+      <div class="track"><div class="fill" style="background:${color[name]}"></div></div>
+      <div class="count"><span data-to="${v}">${animate ? 0 : v}</span><span class="pct">${sum ? Math.round(v / sum * 100) : 0}%</span></div>`);
+    bars.append(row);
+    const fillEl = row.querySelector(".fill");
+    if (animate) {
+      requestAnimationFrame(() => requestAnimationFrame(() => { fillEl.style.width = (v / max * 100) + "%"; }));
+      countUp(row.querySelector("[data-to]"), v);
+    } else {
+      fillEl.style.width = (v / max * 100) + "%";
+    }
+  });
+}
+
+function countUp(node, to) {
+  const start = performance.now(), dur = 900;
+  const step = now => {
+    const p = Math.min(1, (now - start) / dur);
+    node.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+/* ---------- Hall of fame ---------- */
+function renderStats() {
+  const earlyKing = Object.entries(D.early.total).sort((a, b) => b[1] - a[1])[0];
+  const fastestAvg = Object.entries(D.avgReaction).sort((a, b) => a[1] - b[1])[0];
+  const cards = [
+    ["🏆", t("mostWins"), ranked[0], `${D.wins.total[ranked[0]]}`, t("mostWinsNote", { n: D.daysPlayed })],
+    ["🔥", t("streak"), D.bestStreak.name, plural("days", D.bestStreak.len), `${fmtDate(D.bestStreak.start)} – ${fmtDate(D.bestStreak.end)}`],
+    ["⚡", t("fastest"), D.fastest.name, fmtSec(D.fastest.ms), t("fastestNote", { date: fmtDate(D.fastest.date) })],
+    ["⏱️", t("bestAvg"), fastestAvg[0], fmtSec(fastestAvg[1]), t("bestAvgNote")],
+    ["📅", t("bestMonth"), D.bestMonth.name, plural("wins", D.bestMonth.wins), fmtMonth(D.bestMonth.month)],
+    ["🚨", t("earlyKing"), earlyKing[0], `${earlyKing[1]}×`, t("earlyNote")],
+  ];
+  const stats = document.getElementById("stats");
+  stats.innerHTML = "";
+  for (const [emoji, title, who, big, note] of cards) {
+    stats.append(el("div", { className: "stat" }, `
+      <div class="emoji">${emoji}</div>
+      <div class="title">${title}</div>
+      <div class="big" style="color:${color[who]}">${big}</div>
+      <div class="who">${who}</div>
+      <div class="note">${note}</div>`));
+  }
+}
+
+/* ---------- Racegraf ---------- */
+function renderRace() {
+  const W = 900, H = 360, L = 44, R = 90, TOP = 16, B = 34;
+  const n = D.race.months.length;
+  const max = Math.max(...Object.values(D.race.series).flat());
+  const x = i => L + (n === 1 ? 0 : i / (n - 1) * (W - L - R));
+  const y = v => TOP + (1 - v / max) * (H - TOP - B);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${t("chartLabel")}">`;
+  const stepY = max > 200 ? 50 : 25;
+  for (let v = 0; v <= max; v += stepY) {
+    svg += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#2c2840"/>`;
+    svg += `<text x="${L - 8}" y="${y(v) + 4}" fill="#9c95b8" font-size="12" text-anchor="end">${v}</text>`;
+  }
+  D.race.months.forEach((mo, i) => {
+    if (mo.endsWith("-01") || i === 0)
+      svg += `<text x="${x(i)}" y="${H - 10}" fill="#9c95b8" font-size="12" text-anchor="middle">${mo.slice(0, 4)}</text>`;
+  });
+  for (const p of ranked.slice().reverse()) {
+    const pts = D.race.series[p].map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+    svg += `<polyline points="${pts}" fill="none" stroke="${color[p]}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  }
+  // Etiketter i slutet, skjutna isär så de inte överlappar
+  const ends = ranked.map(p => ({ p, v: D.race.series[p].at(-1), yy: y(D.race.series[p].at(-1)) }))
+    .sort((a, b) => a.yy - b.yy);
+  for (let i = 1; i < ends.length; i++) if (ends[i].yy - ends[i - 1].yy < 18) ends[i].yy = ends[i - 1].yy + 18;
+  for (const e of ends) {
+    svg += `<circle cx="${x(n - 1)}" cy="${y(e.v)}" r="5" fill="${color[e.p]}"/>`;
+    svg += `<text x="${x(n - 1) + 10}" y="${e.yy + 5}" fill="${color[e.p]}" font-size="14" font-weight="800">${e.p} ${e.v}</text>`;
+  }
+  document.getElementById("race").innerHTML = svg + "</svg>";
+  document.getElementById("legend").innerHTML = ranked.map(p => `<span style="--c:${color[p]}">${p}</span>`).join("");
+}
+
+/* ---------- Tabell år för år ---------- */
+function renderTable() {
+  const cols = ["total", ...D.years];
+  let html = `<thead><tr><th>${t("player")}</th>${cols.map(c => `<th>${c === "total" ? t("total") : c}</th>`).join("")}</tr></thead><tbody>`;
+  const top = Object.fromEntries(cols.map(c => [c, Math.max(...Object.values(D.wins[c]))]));
+  for (const p of ranked) {
+    html += `<tr><td><b style="color:${color[p]}">${p}</b></td>`;
+    for (const c of cols) {
+      const v = D.wins[c][p] || 0;
+      html += `<td class="${v && v === top[c] ? "top" : ""}">${v}${v && v === top[c] ? " 👑" : ""}</td>`;
+    }
+    html += "</tr>";
+  }
+  // Tjuvstarter per person, med samma kolumner
+  html += `<tr class="section"><td colspan="${cols.length + 1}">${t("falseStarts")} 🚨 <span>(${t("earlyNote")})</span></td></tr>`;
+  const worst = Object.fromEntries(cols.map(c => [c, Math.max(0, ...Object.values(D.early[c] || {}))]));
+  for (const p of ranked) {
+    html += `<tr><td><b style="color:${color[p]}">${p}</b></td>`;
+    for (const c of cols) {
+      const v = (D.early[c] || {})[p] || 0;
+      html += `<td class="${v && v === worst[c] ? "worst" : ""}">${v}${v && v === worst[c] ? " 🚨" : ""}</td>`;
+    }
+    html += "</tr>";
+  }
+  document.getElementById("table").innerHTML = html + "</tbody>";
+}
+
+function renderAll(first = false) {
+  document.documentElement.lang = lang;
+  document.title = t("title");
+  document.querySelector('meta[name="description"]').content = t("description");
+  for (const node of document.querySelectorAll("[data-i18n]")) node.innerHTML = t(node.dataset.i18n);
+  for (const b of langs.children) b.setAttribute("aria-pressed", b.dataset.lang === lang);
+  for (const b of tabs.children) b.textContent = b.dataset.key === "total" ? t("total") : b.dataset.key;
+  show(current, first);
+  renderStats();
+  renderRace();
+  renderTable();
+  document.getElementById("footer").textContent =
+    t("footer", { first: fmtDate(D.firstGame), n: D.daysPlayed, updated: fmtDate(D.updated) });
+  tick();
+}
+
+/* ---------- Nedräkning till 21:37 (svensk tid) ---------- */
+const stockholm = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Stockholm", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+let confettiDone = false;
+function tick() {
+  const [h, m, s] = stockholm.format(new Date()).split(":").map(Number);
+  const now = h * 3600 + m * 60 + s;
+  const target = 21 * 3600 + 37 * 60;
+  const live = now >= target && now < target + 60;
+  document.body.classList.toggle("live", live);
+  const clock = document.getElementById("clock");
+  const label = document.getElementById("clock-label");
+  if (live) {
+    label.textContent = t("now");
+    clock.textContent = "PAPA TIME!";
+    if (!confettiDone) { confetti(); confettiDone = true; }
+  } else {
+    confettiDone = false;
+    let diff = target - now; if (diff < 0) diff += 86400;
+    const hh = String(Math.floor(diff / 3600)).padStart(2, "0");
+    const mm = String(Math.floor(diff % 3600 / 60)).padStart(2, "0");
+    const ss = String(diff % 60).padStart(2, "0");
+    label.textContent = t("nextIn");
+    clock.textContent = `${hh}:${mm}:${ss}`;
+  }
+}
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  for (let i = 0; i < 60; i++) {
+    const c = el("div", { className: "confetti" }, ["🙏", "👑", "✨", "🙏"][i % 4]);
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.animationDuration = 2.5 + Math.random() * 3 + "s";
+    c.style.animationDelay = Math.random() * 2 + "s";
+    document.body.append(c);
+    setTimeout(() => c.remove(), 8000);
+  }
+}
+
+renderAll(true);
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
